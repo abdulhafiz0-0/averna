@@ -1,0 +1,315 @@
+import React, { useState, useEffect } from 'react';
+import { apiService } from '../services/api';
+import { 
+  Plus, 
+  Search, 
+  CreditCard,
+  Calendar,
+  DollarSign,
+  User
+} from 'lucide-react';
+
+const PaymentsPage = () => {
+  const [payments, setPayments] = useState([]);
+  const [students, setStudents] = useState([]);
+  const [courses, setCourses] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showModal, setShowModal] = useState(false);
+
+  const [formData, setFormData] = useState({
+    student_id: '',
+    money: 0,
+    date: '',
+    course_id: '',
+    description: ''
+  });
+
+
+  useEffect(() => {
+    fetchPayments();
+    fetchStudents();
+    fetchCourses();
+  }, []);
+
+  const fetchPayments = async () => {
+    try {
+      const data = await apiService.getPayments();
+      setPayments(data);
+      setLoading(false);
+    } catch (err) {
+      setError('Failed to load payments');
+      setLoading(false);
+    }
+  };
+
+  const fetchStudents = async () => {
+    try {
+      const data = await apiService.getStudents();
+      setStudents(data);
+    } catch (err) {
+      console.error('Failed to load students:', err);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const data = await apiService.getCourses();
+      setCourses(data);
+    } catch (err) {
+      console.error('Failed to load courses:', err);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await apiService.createPayment({
+        ...formData,
+        student_id: parseInt(formData.student_id),
+        course_id: parseInt(formData.course_id),
+        money: parseFloat(formData.money)
+      });
+      setShowModal(false);
+      setFormData({
+        student_id: '',
+        money: 0,
+        date: '',
+        course_id: '',
+        description: ''
+      });
+      fetchPayments();
+    } catch (err) {
+      setError('Failed to save payment');
+    }
+  };
+
+  const getStudentName = (studentId) => {
+    const student = students.find(s => s.id === studentId);
+    return student ? `${student.name} ${student.surname}` : 'Unknown Student';
+  };
+
+  const getCourseName = (courseId) => {
+    const course = courses.find(c => c.id === courseId);
+    return course ? course.name : 'Unknown Course';
+  };
+
+  const getStudentCourses = (studentId) => {
+    const student = students.find(s => s.id === parseInt(studentId));
+    if (!student || !student.courses) return [];
+    
+    return courses.filter(course => 
+      student.courses.includes(course.id)
+    );
+  };
+
+  const filteredPayments = payments.filter(payment => {
+    const studentName = getStudentName(payment.student_id);
+    const courseName = getCourseName(payment.course_id);
+    return studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+           courseName.toLowerCase().includes(searchTerm.toLowerCase());
+  });
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-600"></div>
+      </div>
+    );
+  }
+
+  return (
+    <div className={`transition-all duration-300 ${showModal ? 'blur-sm' : ''}`}>
+      <div className="mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Payments</h1>
+            <p className="mt-1 text-sm text-gray-500">
+              Manage payment records and transactions
+            </p>
+          </div>
+          <button
+            onClick={() => setShowModal(true)}
+            className="mt-4 sm:mt-0 btn-primary flex items-center"
+          >
+            <Plus className="h-4 w-4 mr-2" />
+            Record Payment
+          </button>
+        </div>
+      </div>
+
+      {/* Search */}
+      <div className="mb-6">
+        <div className="relative">
+          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search payments..."
+            className="input-field pl-10"
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Payments List */}
+      <div className="space-y-4">
+        {filteredPayments.map((payment) => (
+          <div key={payment.id} className="card">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <div className="flex-shrink-0">
+                  <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <CreditCard className="h-5 w-5 text-green-600" />
+                  </div>
+                </div>
+                <div className="ml-4">
+                  <h3 className="text-lg font-medium text-gray-900">
+                    {getStudentName(payment.student_id)}
+                  </h3>
+                  <p className="text-sm text-gray-500">{getCourseName(payment.course_id)}</p>
+                  {payment.description && (
+                    <p className="text-sm text-gray-600 mt-1">{payment.description}</p>
+                  )}
+                </div>
+              </div>
+              <div className="text-right">
+                <p className="text-lg font-semibold text-gray-900">${payment.money}</p>
+                <p className="text-sm text-gray-500">Payment #{payment.id}</p>
+              </div>
+            </div>
+            
+            <div className="mt-4 flex items-center text-sm text-gray-500">
+              <Calendar className="h-4 w-4 mr-2" />
+              {new Date(payment.date).toLocaleDateString()}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {filteredPayments.length === 0 && (
+        <div className="text-center py-12">
+          <CreditCard className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No payments found</h3>
+          <p className="text-gray-500">
+            {searchTerm ? 'Try adjusting your search terms.' : 'Get started by recording a new payment.'}
+          </p>
+        </div>
+      )}
+
+      {/* Modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-gray-500 bg-opacity-10 transition-opacity" onClick={() => setShowModal(false)} />
+            
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-10">
+              <form onSubmit={handleSubmit}>
+                <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                  <h3 className="text-lg font-medium text-gray-900 mb-4">Record New Payment</h3>
+                  
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Student</label>
+                      <select
+                        className="input-field"
+                        value={formData.student_id}
+                        onChange={(e) => setFormData({...formData, student_id: e.target.value, course_id: ''})}
+                        required
+                      >
+                        <option value="">Select a student</option>
+                        {students.map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {student.name} {student.surname}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Course</label>
+                      <select
+                        className="input-field"
+                        value={formData.course_id}
+                        onChange={(e) => setFormData({...formData, course_id: e.target.value})}
+                        required
+                        disabled={!formData.student_id}
+                      >
+                        <option value="">
+                          {formData.student_id ? 'Select a course' : 'Select a student first'}
+                        </option>
+                        {getStudentCourses(formData.student_id).map((course) => (
+                          <option key={course.id} value={course.id}>
+                            {course.name}
+                          </option>
+                        ))}
+                      </select>
+                      {formData.student_id && getStudentCourses(formData.student_id).length === 0 && (
+                        <p className="text-sm text-gray-500 mt-1">
+                          This student is not enrolled in any courses
+                        </p>
+                      )}
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Amount</label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        className="input-field"
+                        value={formData.money}
+                        onChange={(e) => setFormData({...formData, money: e.target.value})}
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Payment Date</label>
+                      <input
+                        type="date"
+                        className="input-field"
+                        value={formData.date}
+                        onChange={(e) => setFormData({...formData, date: e.target.value})}
+                        required
+                      />
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">Description</label>
+                      <textarea
+                        className="input-field"
+                        rows="3"
+                        placeholder="Enter payment description (optional)"
+                        value={formData.description}
+                        onChange={(e) => setFormData({...formData, description: e.target.value})}
+                      />
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                  <button
+                    type="submit"
+                    className="btn-primary w-full sm:w-auto sm:ml-3"
+                  >
+                    Record Payment
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-secondary w-full sm:w-auto mt-3 sm:mt-0"
+                    onClick={() => setShowModal(false)}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default PaymentsPage;
