@@ -1,5 +1,0 @@
-# Netlify redirects for SPA
-/*    /index.html   200
-
-# API redirects (if needed)
-/api/*  https://avernalc-production.up.railway.app/:splat  200
