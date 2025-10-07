@@ -1,6 +1,11 @@
 [build]
   publish = "dist"
-  command = "npm run build"
+  command = "npm install --production=false && npm run build"
+  # Alternative: command = "bash build.sh"
+
+[build.environment]
+  NODE_VERSION = "18"
+  NPM_FLAGS = "--production=false"
 
 [[redirects]]
   from = "/*"
