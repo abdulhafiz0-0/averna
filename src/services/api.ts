@@ -59,7 +59,7 @@ export interface StatsOverview {
 
 class ApiService {
   private api: AxiosInstance;
-  private baseURL = 'http://172.24.62.118:8001';
+  private baseURL = 'https://avernalc-production.up.railway.app/';
 
   constructor() {
     this.api = axios.create({
@@ -206,6 +206,16 @@ class ApiService {
 
   async createPayment(paymentData: Omit<Payment, 'id'>): Promise<Payment> {
     const response: AxiosResponse<Payment> = await this.api.post('/payments/', paymentData);
+    return response.data;
+  }
+
+  async updatePayment(id: number, paymentData: Omit<Payment, 'id'>): Promise<Payment> {
+    const response: AxiosResponse<Payment> = await this.api.put(`/payments/${id}`, paymentData);
+    return response.data;
+  }
+
+  async deletePayment(id: number): Promise<{ message: string }> {
+    const response: AxiosResponse<{ message: string }> = await this.api.delete(`/payments/${id}`);
     return response.data;
   }
 
