@@ -37,7 +37,6 @@ const UsersPage = () => {
   const roles = [
     { value: "teacher", label: "Teacher", icon: User },
     { value: "admin", label: "Admin", icon: UserCheck },
-    { value: "superadmin", label: "Super Admin", icon: Shield },
   ];
 
   useEffect(() => {
@@ -68,12 +67,20 @@ const UsersPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Prepare user data with proper course_id handling
+      const userData = {
+        username: formData.username,
+        password: formData.password,
+        role: formData.role,
+        course_id: formData.role === 'admin' ? 0 : (formData.course_id ? parseInt(formData.course_id) : undefined),
+      };
+
       if (editingUser) {
-        // Prepare update data - only include password if it's not empty
+        // For editing, only include password if it's not empty
         const updateData = {
           username: formData.username,
           role: formData.role,
-          course_id: formData.course_id || undefined,
+          course_id: formData.role === 'admin' ? 0 : (formData.course_id ? parseInt(formData.course_id) : undefined),
         };
         
         // Only include password if it's provided (for editing)
@@ -92,7 +99,7 @@ const UsersPage = () => {
         });
         fetchUsers();
       } else {
-        await apiService.createUser(formData);
+        await apiService.createUser(userData);
         setShowModal(false);
         setFormData({
           username: "",
@@ -113,7 +120,7 @@ const UsersPage = () => {
       username: user.username,
       password: "",
       role: user.role,
-      course_id: user.course_id || "",
+      course_id: user.role === 'admin' ? 0 : (user.course_id || ""),
     });
     setShowModal(true);
   };
@@ -153,8 +160,6 @@ const UsersPage = () => {
 
   const getRoleColor = (role) => {
     switch (role) {
-      case "superadmin":
-        return "bg-red-100 text-red-800";
       case "admin":
         return "bg-blue-100 text-blue-800";
       case "teacher":
@@ -166,8 +171,10 @@ const UsersPage = () => {
 
   const filteredUsers = users.filter(
     (user) =>
-      user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchTerm.toLowerCase())
+      user.role !== 'superadmin' && (
+        user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        user.role.toLowerCase().includes(searchTerm.toLowerCase())
+      )
   );
 
   if (loading) {
@@ -307,8 +314,6 @@ const UsersPage = () => {
                         "Can take attendance and view their students"}
                       {role.value === "admin" &&
                         "Can manage students, courses, payments, and take attendance"}
-                      {role.value === "superadmin" &&
-                        "Full system access including user management"}
                     </p>
                   </div>
                 </div>
@@ -373,13 +378,14 @@ const UsersPage = () => {
                       <select
                         className="input-field"
                         value={formData.role}
-                        onChange={(e) =>
+                        onChange={(e) => {
+                          const newRole = e.target.value;
                           setFormData({
                             ...formData,
-                            role: e.target.value,
-                            course_id: "",
-                          })
-                        }
+                            role: newRole,
+                            course_id: (newRole === 'admin' || newRole === 'superadmin') ? 0 : "",
+                          });
+                        }}
                         required
                       >
                         {roles.map((role) => (

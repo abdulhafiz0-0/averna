@@ -121,12 +121,12 @@ class ApiService {
     return response.data;
   }
 
-  async createUser(userData: { username: string; password: string; role: string; course_id?: string }): Promise<User> {
+  async createUser(userData: { username: string; password: string; role: string; course_id?: number }): Promise<User> {
     const response: AxiosResponse<User> = await this.api.post('/users/', userData);
     return response.data;
   }
 
-  async updateUser(id: number, userData: { username: string; password?: string; role: string; course_id?: string }): Promise<User> {
+  async updateUser(id: number, userData: { username: string; password?: string; role: string; course_id?: number }): Promise<User> {
     const response: AxiosResponse<User> = await this.api.put(`/users/${id}`, userData);
     return response.data;
   }
