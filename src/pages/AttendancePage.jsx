@@ -202,12 +202,12 @@ const AttendancePage = () => {
                       {attendance.isAbsent ? (
                         <div className="flex items-center text-red-600">
                           <XCircle className="h-5 w-5 mr-1" />
-                          <span className="text-sm font-medium">Absent</span>
+                         
                         </div>
                       ) : (
                         <div className="flex items-center text-green-600">
                           <CheckCircle className="h-5 w-5 mr-1" />
-                          <span className="text-sm font-medium">Present</span>
+                          
                         </div>
                       )}
                     </div>
@@ -218,14 +218,14 @@ const AttendancePage = () => {
                         className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
-                        Present
+                        
                       </button>
                       <button
                         onClick={() => handleAttendance(student.id, false)}
                         className="flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
-                        Absent
+                       
                       </button>
                     </div>
                   )}
