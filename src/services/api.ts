@@ -126,6 +126,16 @@ class ApiService {
     return response.data;
   }
 
+  async updateUser(id: number, userData: { username: string; password?: string; role: string; course_id?: string }): Promise<User> {
+    const response: AxiosResponse<User> = await this.api.put(`/users/${id}`, userData);
+    return response.data;
+  }
+
+  async deleteUser(id: number): Promise<{ message: string }> {
+    const response: AxiosResponse<{ message: string }> = await this.api.delete(`/users/${id}`);
+    return response.data;
+  }
+
   // Students Management
   async getStudents(): Promise<Student[]> {
     const response: AxiosResponse<Student[]> = await this.api.get('/students/');
