@@ -284,6 +284,7 @@ const AttendancePage = () => {
           </div>
         </div>
       )}
+      </div>
 
       {/* Reason Modal */}
       {showReasonModal && (
@@ -346,7 +347,6 @@ const AttendancePage = () => {
           </div>
         </div>
       )}
-      </div>
     </>
   );
 };
