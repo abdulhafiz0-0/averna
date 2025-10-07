@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
+import { formatMoneyWithSom } from '../utils/formatMoney';
 import { 
   ArrowLeft,
   Edit,
@@ -197,7 +198,7 @@ const StudentDetailsPage = () => {
                 <label className="block text-sm font-medium text-gray-500">Total Money Paid</label>
                 <div className="flex items-center mt-1">
                   <DollarSign className="h-4 w-4 text-gray-400 mr-2" />
-                  <p className="text-lg font-semibold text-gray-900">${student.total_money}</p>
+                  <p className="text-lg font-semibold text-gray-900">{formatMoneyWithSom(student.total_money)}</p>
                 </div>
               </div>
             </div>

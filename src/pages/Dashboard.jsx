@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
+import { formatMoneyWithSom } from '../utils/formatMoney';
 import { 
   Users, 
   BookOpen, 
@@ -41,25 +42,25 @@ const Dashboard = () => {
     },
     {
       name: 'Total Money',
-      value: `$${stats?.total_money?.toLocaleString() || 0}`,
+      value: formatMoneyWithSom(stats?.total_money || 0),
       icon: DollarSign,
       color: 'bg-green-500',
     },
     {
       name: 'Monthly Money',
-      value: `$${stats?.monthly_money?.toLocaleString() || 0}`,
+      value: formatMoneyWithSom(stats?.monthly_money || 0),
       icon: TrendingUp,
       color: 'bg-yellow-500',
     },
     {
       name: 'Unpaid Amount',
-      value: `$${stats?.unpaid?.toLocaleString() || 0}`,
+      value: formatMoneyWithSom(stats?.unpaid || 0),
       icon: AlertCircle,
       color: 'bg-red-500',
     },
     {
       name: 'Monthly Unpaid',
-      value: `$${stats?.monthly_unpaid?.toLocaleString() || 0}`,
+      value: formatMoneyWithSom(stats?.monthly_unpaid || 0),
       icon: AlertCircle,
       color: 'bg-orange-500',
     },

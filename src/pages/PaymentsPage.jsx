@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { formatMoneyWithSom } from '../utils/formatMoney';
 import { 
   Plus, 
   Search, 
@@ -225,7 +226,7 @@ const PaymentsPage = () => {
               </div>
               <div className="flex items-center space-x-4">
                 <div className="text-right">
-                  <p className="text-lg font-semibold text-gray-900">${payment.money}</p>
+                  <p className="text-lg font-semibold text-gray-900">{formatMoneyWithSom(payment.money)}</p>
                   <p className="text-sm text-gray-500">Payment #{payment.id}</p>
                 </div>
                 <div className="flex space-x-2">

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { apiService } from '../services/api';
+import { formatMoneyWithSom } from '../utils/formatMoney';
 import { 
   Plus, 
   Edit, 
@@ -170,7 +171,7 @@ const CoursesPage = () => {
                 </div>
                 <div className="ml-4">
                   <h3 className="text-lg font-medium text-gray-900">{course.name}</h3>
-                  <p className="text-sm text-gray-500">${course.cost} per month</p>
+                  <p className="text-sm text-gray-500">{formatMoneyWithSom(course.cost)} per month</p>
                 </div>
               </div>
               <div className="flex space-x-2">
@@ -200,7 +201,7 @@ const CoursesPage = () => {
               </div>
               <div className="flex items-center text-sm text-gray-500">
                 <DollarSign className="h-4 w-4 mr-2" />
-                Cost: ${course.cost}
+                Cost: {formatMoneyWithSom(course.cost)}
               </div>
             </div>
           </div>
