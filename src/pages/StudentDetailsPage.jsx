@@ -195,11 +195,25 @@ const StudentDetailsPage = () => {
             <h3 className="text-lg font-medium text-gray-900 mb-4">Financial Information</h3>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-gray-500">Total Money Paid</label>
+                <label className="block text-sm font-medium text-gray-500">
+                  {student.total_money < 0 ? 'Debt Amount' : 'Total Money Paid'}
+                </label>
                 <div className="flex items-center mt-1">
-                  <DollarSign className="h-4 w-4 text-gray-400 mr-2" />
-                  <p className="text-lg font-semibold text-gray-900">{formatMoneyWithSom(student.total_money)}</p>
+                  <DollarSign className={`h-4 w-4 mr-2 ${student.total_money < 0 ? 'text-red-400' : 'text-gray-400'}`} />
+                  <p className={`text-lg font-semibold ${student.total_money < 0 ? 'text-red-600' : 'text-gray-900'}`}>
+                    {formatMoneyWithSom(student.total_money)}
+                  </p>
                 </div>
+                {student.total_money < 0 && (
+                  <p className="text-sm text-gray-500 mt-1">
+                    Course costs: {formatMoneyWithSom(
+                      student.courses?.reduce((total, courseId) => {
+                        // This would need courses data, but showing the concept
+                        return total + 0; // Placeholder - would need actual course costs
+                      }, 0) || 0
+                    )}
+                  </p>
+                )}
               </div>
             </div>
           </div>

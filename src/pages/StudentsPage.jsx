@@ -154,6 +154,28 @@ const StudentsPage = () => {
     return course ? course.name : 'Unknown Course';
   };
 
+  const calculateStudentCourseCost = (student) => {
+    if (!student.courses || !courses.length) return 0;
+    
+    return student.courses.reduce((total, courseId) => {
+      const course = courses.find(c => c.id === courseId);
+      return total + (course ? course.cost : 0);
+    }, 0);
+  };
+
+  const getStudentDebtStatus = (student) => {
+    const studentDebt = Math.abs(student.total_money < 0 ? student.total_money : 0);
+    const totalCourseCost = calculateStudentCourseCost(student);
+    
+    return {
+      hasDebt: student.total_money < 0,
+      debtAmount: studentDebt,
+      totalCourseCost: totalCourseCost,
+      isDebtCard: studentDebt >= totalCourseCost,
+      isRedMoney: student.total_money < 0 && studentDebt < totalCourseCost
+    };
+  };
+
   const filteredStudents = students.filter(student =>
     `${student.name} ${student.surname}`.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -206,8 +228,10 @@ const StudentsPage = () => {
 
         {/* Students List */}
         <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {filteredStudents.map((student) => (
-            <div key={student.id} className="card">
+          {filteredStudents.map((student) => {
+            const debtStatus = getStudentDebtStatus(student);
+            return (
+            <div key={student.id} className={`card ${debtStatus.isDebtCard ? 'border-l-4 border-red-500 bg-red-50' : ''}`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className="flex-shrink-0">
@@ -216,9 +240,16 @@ const StudentsPage = () => {
                     </div>
                   </div>
                   <div className="ml-4">
-                    <h3 className="text-lg font-medium text-gray-900">
-                      {student.name} {student.surname}
-                    </h3>
+                    <div className="flex items-center space-x-2">
+                      <h3 className="text-lg font-medium text-gray-900">
+                        {student.name} {student.surname}
+                      </h3>
+                      {debtStatus.isDebtCard && (
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                          DEBT
+                        </span>
+                      )}
+                    </div>
                     <p className="text-sm text-gray-500">{student.second_name}</p>
                   </div>
                 </div>
@@ -256,14 +287,20 @@ const StudentsPage = () => {
                   <Clock className="h-4 w-4 mr-2" />
                   Lessons: {student.num_lesson}
                 </div>
-                <div className="flex items-center text-sm text-gray-500">
+                <div className={`flex items-center text-sm ${debtStatus.hasDebt ? 'text-red-600' : 'text-gray-500'}`}>
                   <DollarSign className="h-4 w-4 mr-2" />
-                  Total: {formatMoneyWithSom(student.total_money)}
+                  {debtStatus.hasDebt ? 'Debt' : 'Total'}: {formatMoneyWithSom(student.total_money)}
                 </div>
                 <div className="flex items-center text-sm text-gray-500">
                   <BookOpen className="h-4 w-4 mr-2" />
                   Courses: {student.courses.length}
                 </div>
+                {debtStatus.hasDebt && (
+                  <div className="flex items-center text-sm text-gray-500">
+                    <GraduationCap className="h-4 w-4 mr-2" />
+                    Course Cost: {formatMoneyWithSom(debtStatus.totalCourseCost)}
+                  </div>
+                )}
               </div>
               
               {student.courses.length > 0 && (
@@ -286,7 +323,8 @@ const StudentsPage = () => {
                 </div>
               )}
             </div>
-          ))}
+            );
+          })}
         </div>
 
         {filteredStudents.length === 0 && (
@@ -379,20 +417,21 @@ const StudentsPage = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Total Money</label>
+                      <label className="block text-sm font-medium text-gray-700">Total Money / Debt</label>
                       <input
                         type="text"
                         className="input-field"
                         value={formData.total_money}
                         onChange={(e) => {
                           const value = e.target.value;
-                          // Only allow numbers, decimal point, and empty string
-                          if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                          // Allow numbers, decimal point, negative sign, and empty string
+                          if (value === '' || /^-?\d*\.?\d*$/.test(value)) {
                             setFormData({...formData, total_money: value});
                           }
                         }}
-                        placeholder="Enter total money amount"
+                        placeholder="Enter amount"
                       />
+                      
                     </div>
                     
                     <div>
