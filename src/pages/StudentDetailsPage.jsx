@@ -138,7 +138,7 @@ const StudentDetailsPage = () => {
               </div>
               
               <div>
-                <label className="block text-sm font-medium text-gray-500">Second Name</label>
+                <label className="block text-sm font-medium text-gray-500">Phone number</label>
                 <p className="text-sm text-gray-900">{student.second_name || 'Not provided'}</p>
               </div>
 

@@ -10,6 +10,7 @@ import {
   UserCheck,
   AlertCircle,
   Eye,
+  EyeOff,
   Calendar,
   Clock,
 } from "lucide-react";
@@ -26,12 +27,13 @@ const UsersPage = () => {
   const [courses, setCourses] = useState([]);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [userToDelete, setUserToDelete] = useState(null);
+  const [showPassword, setShowPassword] = useState(false);
 
   const [formData, setFormData] = useState({
     username: "",
     password: "",
     role: "teacher",
-    course_id: "",
+    course_ids: [],
   });
 
   const roles = [
@@ -67,12 +69,12 @@ const UsersPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
-      // Prepare user data with proper course_id handling
+      // Prepare user data with proper course_ids handling
       const userData = {
         username: formData.username,
         password: formData.password,
         role: formData.role,
-        course_id: formData.role === 'admin' ? 0 : (formData.course_id ? parseInt(formData.course_id) : undefined),
+        course_ids: formData.role === 'admin' ? [] : formData.course_ids,
       };
 
       if (editingUser) {
@@ -80,7 +82,7 @@ const UsersPage = () => {
         const updateData = {
           username: formData.username,
           role: formData.role,
-          course_id: formData.role === 'admin' ? 0 : (formData.course_id ? parseInt(formData.course_id) : undefined),
+          course_ids: formData.role === 'admin' ? [] : formData.course_ids,
         };
         
         // Only include password if it's provided (for editing)
@@ -95,8 +97,9 @@ const UsersPage = () => {
           username: "",
           password: "",
           role: "teacher",
-          course_id: "",
+          course_ids: [],
         });
+        setShowPassword(false);
         fetchUsers();
       } else {
         await apiService.createUser(userData);
@@ -105,8 +108,9 @@ const UsersPage = () => {
           username: "",
           password: "",
           role: "teacher",
-          course_id: "",
+          course_ids: [],
         });
+        setShowPassword(false);
         fetchUsers();
       }
     } catch (err) {
@@ -120,8 +124,9 @@ const UsersPage = () => {
       username: user.username,
       password: "",
       role: user.role,
-      course_id: user.role === 'admin' ? 0 : (user.course_id || ""),
+      course_ids: user.role === 'admin' ? [] : (user.course_ids || []),
     });
+    setShowPassword(false);
     setShowModal(true);
   };
 
@@ -360,15 +365,28 @@ const UsersPage = () => {
                         Password{" "}
                         {editingUser && "(leave blank to keep current)"}
                       </label>
+                      <div className="relative">
                       <input
-                        type="password"
-                        className="input-field"
+                          type={showPassword ? "text" : "password"}
+                          className="input-field pr-10"
                         value={formData.password}
                         onChange={(e) =>
                           setFormData({ ...formData, password: e.target.value })
                         }
                         required={!editingUser}
                       />
+                        <button
+                          type="button"
+                          className="absolute inset-y-0 right-0 pr-3 flex items-center"
+                          onClick={() => setShowPassword(!showPassword)}
+                        >
+                          {showPassword ? (
+                            <EyeOff className="h-5 w-5 text-gray-400" />
+                          ) : (
+                            <Eye className="h-5 w-5 text-gray-400" />
+                          )}
+                        </button>
+                      </div>
                     </div>
 
                     <div>
@@ -383,7 +401,7 @@ const UsersPage = () => {
                           setFormData({
                             ...formData,
                             role: newRole,
-                            course_id: (newRole === 'admin' || newRole === 'superadmin') ? 0 : "",
+                            course_ids: (newRole === 'admin' || newRole === 'superadmin') ? [] : formData.course_ids,
                           });
                         }}
                         required
@@ -399,28 +417,36 @@ const UsersPage = () => {
                     {formData.role === "teacher" && (
                       <div>
                         <label className="block text-sm font-medium text-gray-700 mb-2">
-                          Assign Course
+                          Assign Courses
                         </label>
-                        <select
-                          className="input-field"
-                          value={formData.course_id}
-                          onChange={(e) =>
-                            setFormData({
-                              ...formData,
-                              course_id: e.target.value,
-                            })
-                          }
-                          required
-                        >
-                          <option value="">Select a course</option>
+                        <div className="space-y-2 max-h-40 overflow-y-auto border border-gray-300 rounded-md p-2">
                           {courses.map((course) => (
-                            <option key={course.id} value={course.id}>
-                              {course.name}
-                            </option>
+                            <label key={course.id} className="flex items-center">
+                              <input
+                                type="checkbox"
+                                className="rounded border-gray-300 text-primary-600 shadow-sm focus:border-primary-300 focus:ring focus:ring-primary-200 focus:ring-opacity-50"
+                                checked={formData.course_ids.includes(course.id)}
+                                onChange={(e) => {
+                                  const courseId = course.id;
+                                  if (e.target.checked) {
+                                    setFormData({
+                                      ...formData,
+                                      course_ids: [...formData.course_ids, courseId],
+                                    });
+                                  } else {
+                                    setFormData({
+                                      ...formData,
+                                      course_ids: formData.course_ids.filter(id => id !== courseId),
+                                    });
+                                  }
+                                }}
+                              />
+                              <span className="ml-2 text-sm text-gray-700">{course.name}</span>
+                            </label>
                           ))}
-                        </select>
+                        </div>
                         <p className="text-xs text-gray-500 mt-1">
-                          Select the course this teacher will be responsible for
+                          Select the courses this teacher will be responsible for
                         </p>
                       </div>
                     )}

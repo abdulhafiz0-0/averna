@@ -32,9 +32,9 @@ const StudentsPage = () => {
     name: '',
     surname: '',
     second_name: '',
-    starting_date: '',
-    num_lesson: 0,
-    total_money: 0,
+    starting_date: new Date().toISOString().split('T')[0],
+    num_lesson: '',
+    total_money: '',
     courses: []
   });
 
@@ -70,10 +70,17 @@ const StudentsPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert string values to numbers for API
+      const studentData = {
+        ...formData,
+        num_lesson: parseInt(formData.num_lesson) || 0,
+        total_money: parseFloat(formData.total_money) || 0
+      };
+      
       if (editingStudent) {
-        await apiService.updateStudent(editingStudent.id, formData);
+        await apiService.updateStudent(editingStudent.id, studentData);
       } else {
-        await apiService.createStudent(formData);
+        await apiService.createStudent(studentData);
       }
       setShowModal(false);
       setEditingStudent(null);
@@ -81,9 +88,9 @@ const StudentsPage = () => {
         name: '',
         surname: '',
         second_name: '',
-        starting_date: '',
-        num_lesson: 0,
-        total_money: 0,
+        starting_date: new Date().toISOString().split('T')[0],
+        num_lesson: '',
+        total_money: '',
         courses: []
       });
       fetchStudents();
@@ -99,8 +106,8 @@ const StudentsPage = () => {
       surname: student.surname,
       second_name: student.second_name,
       starting_date: student.starting_date,
-      num_lesson: student.num_lesson,
-      total_money: student.total_money,
+      num_lesson: student.num_lesson.toString(),
+      total_money: student.total_money.toString(),
       courses: student.courses
     });
     setShowModal(true);
@@ -334,7 +341,7 @@ const StudentsPage = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Second Name</label>
+                      <label className="block text-sm font-medium text-gray-700">Phone number</label>
                       <input
                         type="text"
                         className="input-field"
@@ -355,25 +362,36 @@ const StudentsPage = () => {
                     </div>
                     
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Number of Lessons</label>
+                      <label className="block text-sm font-medium text-gray-700">Number of Lessons Attended</label>
                       <input
-                        type="number"
+                        type="text"
                         className="input-field"
                         value={formData.num_lesson}
-                        onChange={(e) => setFormData({...formData, num_lesson: parseInt(e.target.value) || 0})}
-                        min="0"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Only allow numbers and empty string
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({...formData, num_lesson: value});
+                          }
+                        }}
+                        placeholder="Enter number of lessons"
                       />
                     </div>
                     
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Total Money</label>
                       <input
-                        type="number"
-                        step="0.01"
+                        type="text"
                         className="input-field"
                         value={formData.total_money}
-                        onChange={(e) => setFormData({...formData, total_money: parseFloat(e.target.value) || 0})}
-                        min="0"
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Only allow numbers, decimal point, and empty string
+                          if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                            setFormData({...formData, total_money: value});
+                          }
+                        }}
+                        placeholder="Enter total money amount"
                       />
                     </div>
                     

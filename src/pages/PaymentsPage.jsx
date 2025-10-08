@@ -26,8 +26,8 @@ const PaymentsPage = () => {
 
   const [formData, setFormData] = useState({
     student_id: '',
-    money: 0,
-    date: '',
+    money: '',
+    date: new Date().toISOString().split('T')[0],
     course_id: '',
     description: ''
   });
@@ -88,8 +88,8 @@ const PaymentsPage = () => {
       setEditingPayment(null);
       setFormData({
         student_id: '',
-        money: 0,
-        date: '',
+        money: '',
+        date: new Date().toISOString().split('T')[0],
         course_id: '',
         description: ''
       });
@@ -122,7 +122,7 @@ const PaymentsPage = () => {
     setEditingPayment(payment);
     setFormData({
       student_id: payment.student_id.toString(),
-      money: payment.money,
+      money: payment.money.toString(),
       date: payment.date,
       course_id: payment.course_id.toString(),
       description: payment.description
@@ -326,11 +326,17 @@ const PaymentsPage = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Amount</label>
                       <input
-                        type="number"
-                        step="0.01"
+                        type="text"
                         className="input-field"
                         value={formData.money}
-                        onChange={(e) => setFormData({...formData, money: e.target.value})}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Only allow numbers, decimal point, and empty string
+                          if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                            setFormData({...formData, money: value});
+                          }
+                        }}
+                        placeholder="Enter payment amount"
                         required
                       />
                     </div>

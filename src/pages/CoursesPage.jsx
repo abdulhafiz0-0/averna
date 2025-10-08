@@ -25,8 +25,8 @@ const CoursesPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     week_days: [],
-    lesson_per_month: 0,
-    cost: 0
+    lesson_per_month: '',
+    cost: ''
   });
 
   const weekDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
@@ -49,18 +49,25 @@ const CoursesPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
+      // Convert string values to numbers for API
+      const courseData = {
+        ...formData,
+        lesson_per_month: parseInt(formData.lesson_per_month) || 0,
+        cost: parseFloat(formData.cost) || 0
+      };
+      
       if (editingCourse) {
-        await apiService.updateCourse(editingCourse.id, formData);
+        await apiService.updateCourse(editingCourse.id, courseData);
       } else {
-        await apiService.createCourse(formData);
+        await apiService.createCourse(courseData);
       }
       setShowModal(false);
       setEditingCourse(null);
       setFormData({
         name: '',
         week_days: [],
-        lesson_per_month: 0,
-        cost: 0
+        lesson_per_month: '',
+        cost: ''
       });
       fetchCourses();
     } catch (err) {
@@ -73,8 +80,8 @@ const CoursesPage = () => {
     setFormData({
       name: course.name,
       week_days: course.week_days,
-      lesson_per_month: course.lesson_per_month,
-      cost: course.cost
+      lesson_per_month: course.lesson_per_month.toString(),
+      cost: course.cost.toString()
     });
     setShowModal(true);
   };
@@ -247,10 +254,17 @@ const CoursesPage = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Lessons per Month</label>
                       <input
-                        type="number"
+                        type="text"
                         className="input-field"
                         value={formData.lesson_per_month}
-                        onChange={(e) => setFormData({...formData, lesson_per_month: parseInt(e.target.value) || 0})}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Only allow numbers and empty string
+                          if (value === '' || /^\d+$/.test(value)) {
+                            setFormData({...formData, lesson_per_month: value});
+                          }
+                        }}
+                        placeholder="Enter number of lessons per month"
                         required
                       />
                     </div>
@@ -258,11 +272,17 @@ const CoursesPage = () => {
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Cost</label>
                       <input
-                        type="number"
-                        step="0.01"
+                        type="text"
                         className="input-field"
                         value={formData.cost}
-                        onChange={(e) => setFormData({...formData, cost: parseFloat(e.target.value) || 0})}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          // Only allow numbers, decimal point, and empty string
+                          if (value === '' || /^\d*\.?\d*$/.test(value)) {
+                            setFormData({...formData, cost: value});
+                          }
+                        }}
+                        placeholder="Enter course cost"
                         required
                       />
                     </div>

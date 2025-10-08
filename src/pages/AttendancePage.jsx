@@ -24,6 +24,8 @@ const AttendancePage = () => {
   const [showReasonModal, setShowReasonModal] = useState(false);
   const [selectedStudent, setSelectedStudent] = useState(null);
   const [reason, setReason] = useState('');
+  const [recordingAttendance, setRecordingAttendance] = useState(null);
+  const [successMessage, setSuccessMessage] = useState('');
 
   useEffect(() => {
     console.log('Modal state changed:', showReasonModal, 'Selected student:', selectedStudent);
@@ -68,18 +70,65 @@ const AttendancePage = () => {
   };
 
   const recordAttendance = async (studentId, isPresent, reasonText) => {
+    if (!selectedCourse) {
+      setError('Please select a course first');
+      return;
+    }
+    
+    setRecordingAttendance(studentId);
+    setError('');
+    
     try {
       await apiService.recordAttendance({
         student_id: studentId,
+        course_id: parseInt(selectedCourse),
         date: selectedDate,
         isAbsent: !isPresent,
         reason: reasonText
       });
       
-      // Refresh the students list to show updated attendance
+      // Update local state immediately for instant feedback
+      setStudents(prevStudents => 
+        prevStudents.map(student => {
+          if (student.id === studentId) {
+            const newAttendance = {
+              date: selectedDate,
+              course_id: parseInt(selectedCourse),
+              isAbsent: !isPresent,
+              reason: reasonText
+            };
+            
+            // Update or add attendance record
+            const existingAttendanceIndex = student.attendance?.findIndex(a => 
+              a.date === selectedDate && a.course_id === parseInt(selectedCourse)
+            );
+            
+            let updatedAttendance = [...(student.attendance || [])];
+            if (existingAttendanceIndex >= 0) {
+              updatedAttendance[existingAttendanceIndex] = newAttendance;
+            } else {
+              updatedAttendance.push(newAttendance);
+            }
+            
+            return {
+              ...student,
+              attendance: updatedAttendance
+            };
+          }
+          return student;
+        })
+      );
+      
+      // Show success message
+      setSuccessMessage(`Attendance recorded successfully for ${isPresent ? 'Present' : 'Absent'}`);
+      setTimeout(() => setSuccessMessage(''), 3000);
+      
+      // Also refresh from API to ensure consistency
       fetchStudents();
     } catch (err) {
       setError('Failed to record attendance');
+    } finally {
+      setRecordingAttendance(null);
     }
   };
 
@@ -102,13 +151,16 @@ const AttendancePage = () => {
   };
 
   const getStudentAttendance = (student) => {
-    const attendance = student.attendance?.find(a => a.date === selectedDate);
+    if (!selectedCourse) return null;
+    const attendance = student.attendance?.find(a => 
+      a.date === selectedDate && a.course_id === parseInt(selectedCourse)
+    );
     return attendance;
   };
 
   const filteredStudents = students.filter(student => {
     const matchesSearch = `${student.name} ${student.surname}`.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesCourse = !selectedCourse || student.courses.includes(parseInt(selectedCourse));
+    const matchesCourse = selectedCourse && student.courses.includes(parseInt(selectedCourse));
     return matchesSearch && matchesCourse;
   });
 
@@ -128,6 +180,12 @@ const AttendancePage = () => {
         <p className="mt-1 text-sm text-gray-500">
           Record and manage student attendance
         </p>
+        {selectedCourse && (
+          <div className="mt-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-primary-100 text-primary-800">
+            <Calendar className="h-4 w-4 mr-1" />
+            {courses.find(c => c.id === parseInt(selectedCourse))?.name}
+          </div>
+        )}
       </div>
 
       {/* Filters */}
@@ -144,19 +202,25 @@ const AttendancePage = () => {
           </div>
           
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Course</label>
+            <label className="block text-sm font-medium text-gray-700 mb-2">
+              Course <span className="text-red-500">*</span>
+            </label>
             <select
-              className="input-field"
+              className={`input-field ${!selectedCourse ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-green-300 focus:border-green-500 focus:ring-green-500'}`}
               value={selectedCourse}
               onChange={(e) => setSelectedCourse(e.target.value)}
+              required
             >
-              <option value="">All Courses</option>
+              <option value="">Select a course</option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>
                   {course.name}
                 </option>
               ))}
             </select>
+            <p className={`text-xs mt-1 ${!selectedCourse ? 'text-red-500' : 'text-green-600'}`}>
+              {!selectedCourse ? 'Please select a course to take attendance' : 'Course selected - students will be shown below'}
+            </p>
           </div>
           
           <div>
@@ -174,6 +238,20 @@ const AttendancePage = () => {
           </div>
         </div>
       </div>
+
+      {/* Success Message */}
+      {successMessage && (
+        <div className="mb-4 rounded-md bg-green-50 p-4 animate-fadeInUp">
+          <div className="text-sm text-green-700">{successMessage}</div>
+        </div>
+      )}
+
+      {/* Error Message */}
+      {error && (
+        <div className="mb-4 rounded-md bg-red-50 p-4 animate-shake">
+          <div className="text-sm text-red-700">{error}</div>
+        </div>
+      )}
 
       {/* Students List */}
       <div className="space-y-4">
@@ -197,17 +275,22 @@ const AttendancePage = () => {
                 </div>
                 
                 <div className="flex items-center space-x-2">
-                  {attendance ? (
+                  {recordingAttendance === student.id ? (
+                    <div className="flex items-center text-blue-600">
+                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600 mr-2"></div>
+                      <span className="text-sm">Recording...</span>
+                    </div>
+                  ) : attendance ? (
                     <div className="flex items-center">
                       {attendance.isAbsent ? (
                         <div className="flex items-center text-red-600">
                           <XCircle className="h-5 w-5 mr-1" />
-                         
+                          <span className="text-sm font-medium">Absent</span>
                         </div>
                       ) : (
                         <div className="flex items-center text-green-600">
                           <CheckCircle className="h-5 w-5 mr-1" />
-                          
+                          <span className="text-sm font-medium">Present</span>
                         </div>
                       )}
                     </div>
@@ -215,24 +298,26 @@ const AttendancePage = () => {
                     <div className="flex space-x-2">
                       <button
                         onClick={() => handleAttendance(student.id, true)}
-                        className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
+                        disabled={recordingAttendance}
+                        className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
-                        
+                        <span className="text-sm">Present</span>
                       </button>
                       <button
                         onClick={() => handleAttendance(student.id, false)}
-                        className="flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors"
+                        disabled={recordingAttendance}
+                        className="flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
-                       
+                        <span className="text-sm">Absent</span>
                       </button>
                     </div>
                   )}
                 </div>
               </div>
               
-              {attendance && attendance.reason && (
+              {attendance && attendance.isAbsent && attendance.reason && (
                 <div className="mt-3 p-2 bg-gray-50 rounded-md">
                   <p className="text-sm text-gray-600">
                     <strong>Reason:</strong> {attendance.reason}
@@ -247,9 +332,15 @@ const AttendancePage = () => {
       {filteredStudents.length === 0 && (
         <div className="text-center py-12">
           <User className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-          <h3 className="text-lg font-medium text-gray-900 mb-2">No students found</h3>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">
+            {!selectedCourse ? 'Select a Course' : 'No students found'}
+          </h3>
           <p className="text-gray-500">
-            {searchTerm || selectedCourse ? 'Try adjusting your filters.' : 'No students are enrolled in any courses.'}
+            {!selectedCourse 
+              ? 'Please select a course to view enrolled students and take attendance.' 
+              : searchTerm 
+                ? 'Try adjusting your search terms.' 
+                : 'No students are enrolled in this course.'}
           </p>
         </div>
       )}
