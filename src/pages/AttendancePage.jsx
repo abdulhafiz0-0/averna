@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
 import { 
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 
 const AttendancePage = () => {
+  const [searchParams] = useSearchParams();
   const { user } = useAuth();
   const [students, setStudents] = useState([]);
   const [courses, setCourses] = useState([]);
@@ -35,6 +37,14 @@ const AttendancePage = () => {
     fetchStudents();
     fetchCourses();
   }, []);
+
+  // Handle course parameter from URL
+  useEffect(() => {
+    const courseParam = searchParams.get('course');
+    if (courseParam) {
+      setSelectedCourse(courseParam);
+    }
+  }, [searchParams]);
 
   const fetchStudents = async () => {
     try {

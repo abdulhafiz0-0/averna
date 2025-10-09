@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { apiService } from '../services/api';
 import { formatMoneyWithSom } from '../utils/formatMoney';
@@ -10,34 +11,109 @@ import {
   TrendingUp,
   DollarSign,
   UserCog,
-  AlertCircle
+  AlertCircle,
+  Clock,
+  GraduationCap
 } from 'lucide-react';
 
 const Dashboard = () => {
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
+  const [courses, setCourses] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    const fetchStats = async () => {
+    const fetchData = async () => {
       try {
         // Only fetch stats for admin and superadmin roles
         if (user?.role === 'admin' || user?.role === 'superadmin') {
           const statsData = await apiService.getStats();
           setStats(statsData);
         }
+        
+        // Fetch courses for teachers
+        if (user?.role === 'teacher') {
+          console.log('Fetching courses for teacher...');
+          const coursesData = await apiService.getCourses();
+          console.log('Fetched courses:', coursesData);
+          setCourses(coursesData);
+        }
+        
         setLoading(false);
       } catch (err) {
-        setError('Failed to load statistics');
+        setError('Failed to load data');
         setLoading(false);
       }
     };
 
     if (user) {
-      fetchStats();
+      fetchData();
     }
   }, [user]);
+
+  // Get today's day name as string
+  const getTodayDayName = () => {
+    const today = new Date();
+    const dayNumber = today.getDay();
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dayNumber];
+  };
+
+  // Get readable week days for a course (already in string format)
+  const getCourseWeekDays = (course) => {
+    if (!course.week_days || !Array.isArray(course.week_days)) return 'No schedule';
+    return course.week_days.join(', ');
+  };
+
+  // Check if today is in the course's week_days list
+  const isTodayInCourseWeekDays = (course) => {
+    console.log('Course week days:', course.week_days);
+    console.log('Today day:', getTodayDayName());
+    if (!course.week_days || !Array.isArray(course.week_days)) return false;
+    const todayDayName = getTodayDayName();
+    return course.week_days.includes(todayDayName);
+  };
+
+  // Get teacher's courses that have today in their week_days
+  // Note: API already returns only courses assigned to the teacher
+  const getTeacherCourses = () => {
+    console.log('=== DEBUG: getTeacherCourses called ===');
+    console.log('User:', user);
+    console.log('Courses (already filtered by API):', courses);
+    console.log('Courses length:', courses.length);
+    
+    if (!courses.length) {
+      console.log('Early return: no courses');
+      return [];
+    }
+    
+    const todayDayName = getTodayDayName();
+    console.log('Today is:', todayDayName);
+    
+    const teacherCourses = courses.filter(course => {
+      const isTodayScheduled = isTodayInCourseWeekDays(course);
+      
+      console.log(`Course "${course.name}":`, {
+        courseId: course.id,
+        week_days: course.week_days,
+        week_days_readable: getCourseWeekDays(course),
+        isTodayScheduled: isTodayScheduled
+      });
+      
+      return isTodayScheduled;
+    });
+    
+    console.log('Filtered courses for today:', teacherCourses.length);
+    console.log('=== END DEBUG ===');
+    return teacherCourses;
+  };
+
+  // Handle course click - navigate to attendance page with pre-selected course
+  const handleCourseClick = (courseId) => {
+    navigate(`/attendance?course=${courseId}`);
+  };
 
   const statCards = [
     {
@@ -64,30 +140,10 @@ const Dashboard = () => {
       icon: AlertCircle,
       color: 'bg-red-500',
     },
-    {
-      name: 'Monthly Unpaid',
-      value: formatMoneyWithSom(stats?.monthly_unpaid || 0),
-      icon: AlertCircle,
-      color: 'bg-orange-500',
-    },
+    
   ];
 
-  const teacherCards = [
-    {
-      name: 'My Students',
-      description: 'View and manage your students',
-      icon: Users,
-      href: '/attendance',
-      color: 'bg-blue-500',
-    },
-    {
-      name: 'Take Attendance',
-      description: 'Record student attendance',
-      icon: Calendar,
-      href: '/attendance',
-      color: 'bg-green-500',
-    },
-  ];
+
 
   if (loading) {
     return (
@@ -119,25 +175,57 @@ const Dashboard = () => {
         </p>
       </div>
 
-      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
-        {teacherCards.map((card) => (
-          <div
-            key={card.name}
-            className="card hover:shadow-md transition-shadow cursor-pointer"
-            onClick={() => window.location.href = card.href}
-          >
-            <div className="flex items-center">
-              <div className={`flex-shrink-0 p-3 rounded-lg ${card.color}`}>
-                <card.icon className="h-6 w-6 text-white" />
+      
+
+      
+
+      {/* Teacher Courses section - only for teachers */}
+      {user?.role === 'teacher' && (
+        <div className="mt-8">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Your Courses</h2>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {getTeacherCourses().map((course) => (
+              <div
+                key={course.id}
+                className="card hover:shadow-md transition-shadow cursor-pointer group"
+                onClick={() => handleCourseClick(course.id)}
+              >
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 p-3 rounded-lg bg-blue-500 group-hover:bg-blue-600 transition-colors">
+                    <GraduationCap className="h-6 w-6 text-white" />
+                  </div>
+                  <div className="ml-4 flex-1">
+                    <h3 className="text-lg font-medium text-gray-900 group-hover:text-blue-600 transition-colors">
+                      {course.name}
+                    </h3>
+                    <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
+                      <div className="flex items-center">
+                        <Clock className="h-4 w-4 mr-1" />
+                        {course.lesson_per_month} lessons/month
+                      </div>
+                      <div className="flex items-center">
+                        <DollarSign className="h-4 w-4 mr-1" />
+                        {formatMoneyWithSom(course.cost)}
+                      </div>
+                    </div>
+                    <div className="mt-2 text-xs text-blue-600">
+                      <strong>Schedule:</strong> {getCourseWeekDays(course)}
+                    </div>
+                    
+                  </div>
+                </div>
               </div>
-              <div className="ml-4">
-                <h3 className="text-lg font-medium text-gray-900">{card.name}</h3>
-                <p className="text-sm text-gray-500">{card.description}</p>
-              </div>
-            </div>
+            ))}
           </div>
-        ))}
-      </div>
+          {getTeacherCourses().length === 0 && (
+            <div className="text-center py-8">
+              <GraduationCap className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No courses today</h3>
+              
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Statistics section - only for admin and superadmin */}
       {(user?.role === 'admin' || user?.role === 'superadmin') && (
