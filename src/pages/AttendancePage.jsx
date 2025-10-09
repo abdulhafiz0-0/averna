@@ -312,7 +312,7 @@ const AttendancePage = () => {
                         className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <CheckCircle className="h-4 w-4 mr-1" />
-                        <span className="text-sm">Present</span>
+                        
                       </button>
                       <button
                         onClick={() => handleAttendance(student.id, false)}
@@ -320,7 +320,7 @@ const AttendancePage = () => {
                         className="flex items-center px-3 py-1 bg-red-100 text-red-700 rounded-md hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         <XCircle className="h-4 w-4 mr-1" />
-                        <span className="text-sm">Absent</span>
+                       
                       </button>
                     </div>
                   )}
