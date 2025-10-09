@@ -19,6 +19,7 @@ const PaymentsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedCourse, setSelectedCourse] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [editingPayment, setEditingPayment] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -86,6 +87,7 @@ const PaymentsPage = () => {
 
       setShowModal(false);
       setEditingPayment(null);
+      setSelectedCourse('');
       setFormData({
         student_id: '',
         money: '',
@@ -118,8 +120,18 @@ const PaymentsPage = () => {
     );
   };
 
+  const getStudentsByCourse = (courseId) => {
+    if (!courseId) return students;
+    
+    return students.filter(student => 
+      student.courses.includes(parseInt(courseId))
+    );
+  };
+
+
   const handleEdit = (payment) => {
     setEditingPayment(payment);
+    setSelectedCourse(payment.course_id.toString());
     setFormData({
       student_id: payment.student_id.toString(),
       money: payment.money.toString(),
@@ -203,6 +215,7 @@ const PaymentsPage = () => {
           </div>
         </div>
 
+
         {/* Payments List */}
         <div className="space-y-4">
         {filteredPayments.map((payment) => (
@@ -282,43 +295,50 @@ const PaymentsPage = () => {
                   
                   <div className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700">Student</label>
+                        <label className="block text-sm font-medium text-gray-700">
+                        Course <span className="text-red-500">*</span>
+                      </label>
                       <select
-                        className="input-field"
-                        value={formData.student_id}
-                        onChange={(e) => setFormData({...formData, student_id: e.target.value, course_id: ''})}
-                        required
-                      >
-                        <option value="">Select a student</option>
-                        {students.map((student) => (
-                          <option key={student.id} value={student.id}>
-                            {student.name} {student.surname}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    
-                    <div>
-                      <label className="block text-sm font-medium text-gray-700">Course</label>
-                      <select
-                        className="input-field"
+                        className={`input-field ${!formData.course_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-green-300 focus:border-green-500 focus:ring-green-500'}`}
                         value={formData.course_id}
-                        onChange={(e) => setFormData({...formData, course_id: e.target.value})}
+                        onChange={(e) => setFormData({...formData, course_id: e.target.value, student_id: ''})}
                         required
-                        disabled={!formData.student_id}
                       >
-                        <option value="">
-                          {formData.student_id ? 'Select a course' : 'Select a student first'}
-                        </option>
-                        {getStudentCourses(formData.student_id).map((course) => (
+                        <option value="">Select a course</option>
+                        {courses.map((course) => (
                           <option key={course.id} value={course.id}>
                             {course.name}
                           </option>
                         ))}
                       </select>
-                      {formData.student_id && getStudentCourses(formData.student_id).length === 0 && (
-                        <p className="text-sm text-gray-500 mt-1">
-                          This student is not enrolled in any courses
+                      <p className={`text-xs mt-1 ${!formData.course_id ? 'text-red-500' : 'text-green-600'}`}>
+                        {!formData.course_id ? 'Please select a course first' : 'Course selected - students will be shown below'}
+                      </p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700">
+                        Student <span className="text-red-500">*</span>
+                      </label>
+                      <select
+                        className={`input-field ${!formData.student_id ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 'border-green-300 focus:border-green-500 focus:ring-green-500'}`}
+                        value={formData.student_id}
+                        onChange={(e) => setFormData({...formData, student_id: e.target.value})}
+                        required
+                        disabled={!formData.course_id}
+                      >
+                        <option value="">
+                          {formData.course_id ? 'Select a student' : 'Select a course first'}
+                        </option>
+                        {getStudentsByCourse(formData.course_id).map((student) => (
+                          <option key={student.id} value={student.id}>
+                            {student.name} {student.surname}
+                          </option>
+                        ))}
+                      </select>
+                      {formData.course_id && getStudentsByCourse(formData.course_id).length === 0 && (
+                        <p className="text-xs text-red-500 mt-1">
+                          No students are enrolled in this course
                         </p>
                       )}
                     </div>
