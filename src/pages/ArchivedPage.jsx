@@ -29,10 +29,8 @@ const ArchivedPage = () => {
 
   const fetchArchivedStudents = async () => {
     try {
-      const data = await apiService.getStudents();
-      // Filter only archived students
-      const archivedStudents = data.filter(student => student.is_archived === true);
-      setStudents(archivedStudents);
+      const data = await apiService.getArchivedStudents();
+      setStudents(data);
       setLoading(false);
     } catch (err) {
       setError('Failed to load archived students');

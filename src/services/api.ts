@@ -143,6 +143,13 @@ class ApiService {
     return response.data;
   }
 
+  async getArchivedStudents(skip: number = 0, limit: number = 1000): Promise<Student[]> {
+    const response: AxiosResponse<Student[]> = await this.api.get('/students/archived/', {
+      params: { skip, limit }
+    });
+    return response.data;
+  }
+
   async getStudent(id: number): Promise<Student> {
     const response: AxiosResponse<Student> = await this.api.get(`/students/${id}`);
     return response.data;
