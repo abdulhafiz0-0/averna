@@ -332,7 +332,7 @@ const Dashboard = () => {
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <div
               className="card hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => window.location.href = '/attendance'}
+              onClick={() => navigate('/attendance')}
             >
               <div className="flex items-center">
                 <Calendar className="h-8 w-8 text-primary-600" />
@@ -345,7 +345,7 @@ const Dashboard = () => {
             
             <div
               className="card hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => window.location.href = '/students'}
+              onClick={() => navigate('/students')}
             >
               <div className="flex items-center">
                 <Users className="h-8 w-8 text-primary-600" />
@@ -358,7 +358,7 @@ const Dashboard = () => {
             
             <div
               className="card hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => window.location.href = '/courses'}
+              onClick={() => navigate('/courses')}
             >
               <div className="flex items-center">
                 <BookOpen className="h-8 w-8 text-primary-600" />
@@ -371,7 +371,7 @@ const Dashboard = () => {
             
             <div
               className="card hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => window.location.href = '/payments'}
+              onClick={() => navigate('/payments')}
             >
               <div className="flex items-center">
                 <CreditCard className="h-8 w-8 text-primary-600" />
@@ -384,7 +384,7 @@ const Dashboard = () => {
             
             <div
               className="card hover:shadow-md transition-shadow cursor-pointer"
-              onClick={() => window.location.href = '/users'}
+              onClick={() => navigate('/users')}
             >
               <div className="flex items-center">
                   <UserCog className="h-8 w-8 text-primary-600" />
