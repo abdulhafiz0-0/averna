@@ -118,6 +118,16 @@ const CoursesPage = () => {
     }));
   };
 
+  const resetFormData = () => {
+    setFormData({
+      name: '',
+      week_days: [],
+      lesson_per_month: '',
+      cost: ''
+    });
+    setEditingCourse(null);
+  };
+
   const filteredCourses = courses.filter(course =>
     course.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -142,7 +152,10 @@ const CoursesPage = () => {
             </p>
           </div>
           <button
-            onClick={() => setShowModal(true)}
+            onClick={() => {
+              resetFormData();
+              setShowModal(true);
+            }}
             className="mt-4 sm:mt-0 btn-primary flex items-center"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -230,7 +243,10 @@ const CoursesPage = () => {
       {showModal && (
         <div className="fixed inset-0 z-50 overflow-y-auto">
           <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
-            <div className="fixed inset-0 bg-transparent bg-opacity-10 transition-opacity" onClick={() => setShowModal(false)} />
+            <div className="fixed inset-0 bg-transparent bg-opacity-10 transition-opacity" onClick={() => {
+              resetFormData();
+              setShowModal(false);
+            }} />
             
             <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-10">
               <form onSubmit={handleSubmit}>
@@ -316,7 +332,10 @@ const CoursesPage = () => {
                   <button
                     type="button"
                     className="btn-secondary w-full sm:w-auto mt-3 sm:mt-0"
-                    onClick={() => setShowModal(false)}
+                    onClick={() => {
+                      resetFormData();
+                      setShowModal(false);
+                    }}
                   >
                     Cancel
                   </button>

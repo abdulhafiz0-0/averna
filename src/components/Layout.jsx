@@ -7,6 +7,7 @@ import {
   CreditCard, 
   Calendar,
   UserCog,
+  Archive,
   Menu,
   X,
   LogOut
@@ -25,6 +26,7 @@ const Layout = () => {
     { name: 'Courses', href: '/courses', icon: BookOpen, roles: ['admin', 'superadmin'] },
     { name: 'Payments', href: '/payments', icon: CreditCard, roles: ['admin', 'superadmin'] },
     { name: 'Attendance', href: '/attendance', icon: Calendar, roles: ['teacher', 'admin', 'superadmin'] },
+    { name: 'Archived', href: '/archived', icon: Archive, roles: ['admin', 'superadmin'] },
     { name: 'Users', href: '/users', icon: UserCog, roles: ['superadmin'] },
   ];
 

@@ -28,8 +28,10 @@ export interface Course {
 
 export interface AttendanceRecord {
   date: string;
+  course_id: number;
   isAbsent: boolean;
   reason: string;
+  charge_money?: boolean;
 }
 
 export interface Payment {
@@ -110,7 +112,6 @@ class ApiService {
     return response.data;
   }
 
-
   async logout(): Promise<void> {
     localStorage.removeItem('auth_token');
   }
@@ -189,13 +190,52 @@ class ApiService {
   }
 
   // Attendance Management
+  /**
+   * Record attendance for a student
+   * 
+   * Attendance options:
+   * - Present (isAbsent=false, charge_money=true): Student attended, money is deducted
+   * - Absent Excused (isAbsent=true, charge_money=false): Student absent with valid reason, no money deducted
+   * - Absent Unexcused (isAbsent=true, charge_money=true): Student absent, money is still deducted
+   */
   async recordAttendance(data: {
     student_id: number;
+    course_id: number;
     date: string;
     isAbsent: boolean;
     reason: string;
+    charge_money: boolean;
   }): Promise<{ message: string; student_id: number; date: string; isAbsent: boolean }> {
     const response = await this.api.post('/attendance/check', data);
+    return response.data;
+  }
+
+  /**
+   * Update attendance for a student
+   * 
+   * Attendance options:
+   * - Present (isAbsent=false, charge_money=true): Student attended, money is deducted
+   * - Absent Excused (isAbsent=true, charge_money=false): Student absent with valid reason, no money deducted
+   * - Absent Unexcused (isAbsent=true, charge_money=true): Student absent, money is still deducted
+   */
+ async updateAttendance(studentId: number, data: {
+    date: string;
+    course_id: number;
+    isAbsent: boolean;
+    reason: string;
+    charge_money: boolean;
+  }): Promise<{ message: string }> {
+    // Date and course_id are query parameters, not in the body
+    const response = await this.api.put(
+      `/attendance/student/${studentId}?date=${data.date}&course_id=${data.course_id}`,
+      {
+        date: data.date,
+        course_id: data.course_id,
+        isAbsent: data.isAbsent,
+        reason: data.reason,
+        charge_money: data.charge_money
+      }
+    );
     return response.data;
   }
 

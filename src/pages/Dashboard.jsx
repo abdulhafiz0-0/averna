@@ -21,6 +21,7 @@ const Dashboard = () => {
   const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [courses, setCourses] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -33,12 +34,17 @@ const Dashboard = () => {
           setStats(statsData);
         }
         
-        // Fetch courses for teachers
+        // Fetch courses and students for teachers
         if (user?.role === 'teacher') {
-          console.log('Fetching courses for teacher...');
-          const coursesData = await apiService.getCourses();
+          console.log('Fetching courses and students for teacher...');
+          const [coursesData, studentsData] = await Promise.all([
+            apiService.getCourses(),
+            apiService.getStudents()
+          ]);
           console.log('Fetched courses:', coursesData);
+          console.log('Fetched students:', studentsData);
           setCourses(coursesData);
+          setStudents(studentsData);
         }
         
         setLoading(false);
@@ -115,6 +121,32 @@ const Dashboard = () => {
     navigate(`/attendance?course=${courseId}`);
   };
 
+  // Get teacher statistics
+  const getTeacherStats = () => {
+    if (!user?.course_ids || !courses.length) {
+      return {
+        totalCourses: 0,
+        totalStudents: 0,
+        coursesToday: 0
+      };
+    }
+
+    const teacherCourses = getTeacherCourses();
+    
+    // Calculate total students enrolled in teacher's courses
+    const totalStudents = students.filter(student => {
+      return student.courses && student.courses.some(courseId => 
+        user.course_ids.includes(courseId)
+      );
+    }).length;
+
+    return {
+      totalCourses: teacherCourses.length,
+      totalStudents: totalStudents,
+      coursesToday: teacherCourses.length // All courses are available today if they show up
+    };
+  };
+
   const statCards = [
     {
       name: 'Total Students',
@@ -178,6 +210,50 @@ const Dashboard = () => {
       
 
       
+
+      {/* Teacher Stats section - only for teachers */}
+      {user?.role === 'teacher' && (
+        <div className="mt-8">
+          <h2 className="text-lg font-medium text-gray-900 mb-4">Your Statistics</h2>
+          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="card">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 p-3 rounded-lg bg-blue-500">
+                  <GraduationCap className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Total Courses</p>
+                  <p className="text-2xl font-semibold text-gray-900">{getTeacherStats().totalCourses}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 p-3 rounded-lg bg-green-500">
+                  <Users className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Total Students</p>
+                  <p className="text-2xl font-semibold text-gray-900">{getTeacherStats().totalStudents}</p>
+                </div>
+              </div>
+            </div>
+
+            <div className="card">
+              <div className="flex items-center">
+                <div className="flex-shrink-0 p-3 rounded-lg bg-purple-500">
+                  <Calendar className="h-6 w-6 text-white" />
+                </div>
+                <div className="ml-4">
+                  <p className="text-sm font-medium text-gray-500">Courses Today</p>
+                  <p className="text-2xl font-semibold text-gray-900">{getTeacherStats().coursesToday}</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Teacher Courses section - only for teachers */}
       {user?.role === 'teacher' && (

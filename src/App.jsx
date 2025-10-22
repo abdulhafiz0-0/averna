@@ -9,6 +9,7 @@ import CoursesPage from './pages/CoursesPage';
 import PaymentsPage from './pages/PaymentsPage';
 import AttendancePage from './pages/AttendancePage';
 import UsersPage from './pages/UsersPage';
+import ArchivedPage from './pages/ArchivedPage';
 import Layout from './components/Layout';
 import { setupTelegramWebApp, setViewportHeight } from './utils/mobileOptimizations';
 
@@ -55,6 +56,7 @@ const AppRoutes = () => {
         <Route path="payments" element={<ProtectedRoute requiredRoles={['admin', 'superadmin']}><PaymentsPage /></ProtectedRoute>} />
         <Route path="attendance" element={<ProtectedRoute><AttendancePage /></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute requiredRoles={['superadmin']}><UsersPage /></ProtectedRoute>} />
+        <Route path="archived" element={<ProtectedRoute requiredRoles={['admin', 'superadmin']}><ArchivedPage /></ProtectedRoute>} />
       </Route>
     </Routes>
   );
