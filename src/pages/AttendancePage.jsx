@@ -498,12 +498,12 @@ const AttendancePage = () => {
                       : 'bg-white border-gray-200 hover:shadow-md'
                 }`}
               >
-                <div className="p-5">
-                  <div className="flex items-center justify-between">
+                <div className="p-4 sm:p-5">
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                     {/* Student Info */}
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-start sm:items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
                       <div className="flex-shrink-0">
-                        <div className={`h-12 w-12 rounded-full flex items-center justify-center font-semibold text-white ${
+                        <div className={`h-12 w-12 rounded-full flex items-center justify-center font-semibold text-white text-sm sm:text-base ${
                           existingAttendance 
                             ? existingAttendance.isAbsent 
                               ? 'bg-red-500' 
@@ -519,65 +519,66 @@ const AttendancePage = () => {
                           {student.name.charAt(0)}{student.surname.charAt(0)}
                         </div>
                       </div>
-                      <div>
-                        <h3 className="text-lg font-semibold text-gray-900">
+                      <div className="min-w-0 flex-1">
+                        <h3 className="text-sm sm:text-lg font-semibold text-gray-900 break-words">
                           {student.name} {student.surname}
                         </h3>
-                        <p className="text-sm text-gray-500">{student.second_name}</p>
+                        <p className="text-xs sm:text-sm text-gray-500 truncate">{student.second_name}</p>
                       </div>
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="flex items-center space-x-3">
+                    <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-3 flex-shrink-0">
                       {existingAttendance ? (
-                        <div className="flex items-center space-x-3">
-                          <div className={`flex items-center px-4 py-2 rounded-lg font-medium ${
+                        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:space-x-3">
+                          <div className={`flex items-center justify-center px-3 sm:px-4 py-2 rounded-lg font-medium text-xs sm:text-sm ${
                             existingAttendance.isAbsent 
                               ? 'bg-red-100 text-red-700' 
                               : 'bg-green-100 text-green-700'
                           }`}>
                             {existingAttendance.isAbsent ? (
                               <>
-                                <XCircle className="h-5 w-5 mr-2" />
-                               
+                                <XCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" />
+                                <span className="hidden sm:inline">Absent</span>
                               </>
                             ) : (
                               <>
-                                <CheckCircle className="h-5 w-5 mr-2" />
-                                
+                                <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" />
+                                <span className="hidden sm:inline">Present</span>
                               </>
                             )}
                           </div>
                           <button
                             onClick={() => handleEditAttendance(student, existingAttendance)}
-                            className="px-4 py-2 text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors"
+                            className="flex items-center justify-center px-3 sm:px-4 py-2 text-xs sm:text-sm font-medium text-blue-700 bg-blue-100 rounded-lg hover:bg-blue-200 transition-colors flex-shrink-0"
                           >
-                            <Pencil className="h-4 w-4 inline mr-1" />
+                            <Pencil className="h-4 w-4 mr-1 flex-shrink-0" />
+                            <span className="hidden sm:inline">Edit</span>
                           </button>
                         </div>
                       ) : (
-                        <div className="flex space-x-2">
+                        <div className="flex gap-2">
                           <button
                             onClick={() => handleBatchAttendance(student.id, 'present')}
-                            className={`flex items-center px-5 py-2.5 rounded-lg font-medium transition-all ${
+                            className={`flex-1 sm:flex-none flex items-center justify-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all ${
                               batchStatus?.status === 'present'
                                 ? 'bg-green-600 text-white shadow-md'
                                 : 'bg-green-50 text-green-700 hover:bg-green-100 border border-green-200'
                             }`}
                           >
-                            <CheckCircle className="h-5 w-5 mr-2" />
-                            
+                            <CheckCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" />
+                            <span className="hidden sm:inline">Present</span>
                           </button>
                           <button
                             onClick={() => handleBatchAttendance(student.id, 'absent')}
-                            className={`flex items-center px-5 py-2.5 rounded-lg font-medium transition-all ${
+                            className={`flex-1 sm:flex-none flex items-center justify-center px-3 sm:px-5 py-2 sm:py-2.5 rounded-lg font-medium text-xs sm:text-sm transition-all ${
                               batchStatus?.isAbsent
                                 ? 'bg-red-600 text-white shadow-md'
                                 : 'bg-red-50 text-red-700 hover:bg-red-100 border border-red-200'
                             }`}
                           >
-                            <XCircle className="h-5 w-5 mr-2" />
-                            
+                            <XCircle className="h-4 w-4 sm:h-5 sm:w-5 mr-1 flex-shrink-0" />
+                            <span className="hidden sm:inline">Absent</span>
                           </button>
                         </div>
                       )}
