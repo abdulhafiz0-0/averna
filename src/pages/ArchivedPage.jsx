@@ -131,14 +131,14 @@ const ArchivedPage = () => {
                   className="flex items-center px-3 py-1 bg-green-100 text-green-700 rounded-md hover:bg-green-200 transition-colors"
                 >
                   <RotateCcw className="h-4 w-4 mr-1" />
-                  Restore
+                  
                 </button>
                 <button
                   onClick={() => navigate(`/students/${student.id}`)}
                   className="flex items-center px-3 py-1 bg-blue-100 text-blue-700 rounded-md hover:bg-blue-200 transition-colors"
                 >
                   <Eye className="h-4 w-4 mr-1" />
-                  View
+                 
                 </button>
               </div>
             </div>

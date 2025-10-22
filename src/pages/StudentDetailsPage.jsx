@@ -109,14 +109,7 @@ const StudentDetailsPage = () => {
               <p className="text-xs sm:text-sm text-gray-400">Student ID: #{student.id}</p>
             </div>
           </div>
-          <button
-            onClick={handleEdit}
-            className="btn-primary flex items-center justify-center sm:justify-start w-full sm:w-auto flex-shrink-0"
-          >
-            <Edit className="h-4 w-4 mr-2" />
-            <span className="hidden sm:inline">Edit Student</span>
-            <span className="sm:hidden">Edit</span>
-          </button>
+          
         </div>
       </div>
 
