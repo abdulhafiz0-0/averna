@@ -329,23 +329,23 @@ const AttendancePage = () => {
         )}
 
         {/* Info Banner */}
-        <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-4">
-          <div className="flex items-start">
-            <Info className="h-5 w-5 text-blue-600 mr-3 mt-0.5 flex-shrink-0" />
-            <div className="text-sm text-blue-800">
+        <div className="mb-6 rounded-lg bg-blue-50 border border-blue-200 p-3 sm:p-4">
+          <div className="flex flex-col sm:flex-row sm:items-start gap-3">
+            <Info className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+            <div className="text-xs sm:text-sm text-blue-800 flex-1">
               <p className="font-semibold mb-2">Attendance Types:</p>
-              <ul className="space-y-1 ml-4">
-                <li className="flex items-center">
-                  <CheckCircle className="h-4 w-4 mr-2 text-green-600" />
-                  <strong>Present:</strong> Student attended, money is deducted
+              <ul className="space-y-2 sm:space-y-1">
+                <li className="flex items-start sm:items-center gap-2">
+                  <CheckCircle className="h-4 w-4 text-green-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+                  <span><strong>Present:</strong> <span className="hidden sm:inline">Student attended, money is deducted</span><span className="sm:hidden">Money deducted</span></span>
                 </li>
-                <li className="flex items-center">
-                  <UserX className="h-4 w-4 mr-2 text-orange-600" />
-                  <strong>Absent Excused:</strong> Valid reason, no money deducted
+                <li className="flex items-start sm:items-center gap-2">
+                  <UserX className="h-4 w-4 text-orange-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+                  <span><strong>Absent Excused:</strong> <span className="hidden sm:inline">Valid reason, no money deducted</span><span className="sm:hidden">No charge</span></span>
                 </li>
-                <li className="flex items-center">
-                  <XCircle className="h-4 w-4 mr-2 text-red-600" />
-                  <strong>Absent Unexcused:</strong> No valid reason, money is still deducted
+                <li className="flex items-start sm:items-center gap-2">
+                  <XCircle className="h-4 w-4 text-red-600 flex-shrink-0 mt-0.5 sm:mt-0" />
+                  <span><strong>Absent Unexcused:</strong> <span className="hidden sm:inline">No valid reason, money is still deducted</span><span className="sm:hidden">Money deducted</span></span>
                 </li>
               </ul>
             </div>
