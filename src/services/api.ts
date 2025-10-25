@@ -59,6 +59,20 @@ export interface StatsOverview {
   total_students: number;
 }
 
+// Event emitter for auth errors
+export const authEventEmitter = {
+  listeners: new Set<() => void>(),
+  
+  on(callback: () => void) {
+    this.listeners.add(callback);
+    return () => this.listeners.delete(callback);
+  },
+  
+  emit() {
+    this.listeners.forEach(callback => callback());
+  }
+};
+
 class ApiService {
   private api: AxiosInstance;
   private baseURL = 'https://avernalc-production.up.railway.app/';
@@ -91,7 +105,9 @@ class ApiService {
       (error) => {
         if (error.response?.status === 401) {
           localStorage.removeItem('auth_token');
-          window.location.href = '/login';
+          localStorage.removeItem('user_data');
+          // Emit event instead of direct navigation
+          authEventEmitter.emit();
         }
         return Promise.reject(error);
       }

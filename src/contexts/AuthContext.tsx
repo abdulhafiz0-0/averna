@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { apiService, LoginResponse } from '../services/api';
+import { apiService, LoginResponse, authEventEmitter } from '../services/api';
 
 interface User {
   user_id: number;
@@ -54,6 +54,20 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     };
 
     initAuth();
+  }, []);
+
+  useEffect(() => {
+    // Listen for auth errors (token expiration)
+    const unsubscribe = authEventEmitter.on(() => {
+      // Clear auth state
+      setUser(null);
+      setIsAuthenticated(false);
+      // Navigate to login will be handled by ProtectedRoute redirect
+    });
+
+    return () => {
+      unsubscribe();
+    };
   }, []);
 
   const login = async (username: string, password: string) => {
