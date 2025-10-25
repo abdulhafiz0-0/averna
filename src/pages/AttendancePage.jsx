@@ -639,7 +639,7 @@ const AttendancePage = () => {
         {/* Batch Save Controls */}
         {filteredStudents.length > 0 && !hasAttendanceBeenTaken() && Object.keys(attendanceData).length > 0 && (
           <div className="mt-6 bg-white rounded-xl shadow-lg border-2 border-blue-200 p-6">
-            <div className="flex items-center justify-between">
+            <div className="flex items-center justify-between flex-col sm:flex-row gap-4">
               <div className="flex items-center space-x-3">
                 <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                   <Save className="h-5 w-5 text-blue-600" />
