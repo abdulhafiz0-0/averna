@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import StudentsPage from './pages/StudentsPage';
 import StudentDetailsPage from './pages/StudentDetailsPage';
 import CoursesPage from './pages/CoursesPage';
+import CourseDetailsPage from './pages/CourseDetailsPage';
 import PaymentsPage from './pages/PaymentsPage';
 import AttendancePage from './pages/AttendancePage';
 import UsersPage from './pages/UsersPage';
@@ -53,6 +54,7 @@ const AppRoutes = () => {
         <Route path="students" element={<ProtectedRoute requiredRoles={['admin', 'superadmin']}><StudentsPage /></ProtectedRoute>} />
         <Route path="students/:id" element={<ProtectedRoute requiredRoles={['admin', 'superadmin']}><StudentDetailsPage /></ProtectedRoute>} />
         <Route path="courses" element={<ProtectedRoute requiredRoles={['admin', 'superadmin']}><CoursesPage /></ProtectedRoute>} />
+        <Route path="courses/:id" element={<ProtectedRoute requiredRoles={['admin', 'superadmin']}><CourseDetailsPage /></ProtectedRoute>} />
         <Route path="payments" element={<ProtectedRoute requiredRoles={['admin', 'superadmin']}><PaymentsPage /></ProtectedRoute>} />
         <Route path="attendance" element={<ProtectedRoute><AttendancePage /></ProtectedRoute>} />
         <Route path="users" element={<ProtectedRoute requiredRoles={['superadmin']}><UsersPage /></ProtectedRoute>} />

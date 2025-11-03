@@ -1,19 +1,27 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { apiService } from '../services/api';
 import { formatMoneyWithSom } from '../utils/formatMoney';
-import { 
-  Plus, 
-  Edit, 
-  Trash2, 
-  Search, 
+import {
+  Plus,
+  Edit,
+  Trash2,
+  Search,
   BookOpen,
   Calendar,
   DollarSign,
-  Clock
+  Clock,
+  Users,
+  Eye,
+  UserPlus,
+  AlertCircle,
+  User
 } from 'lucide-react';
 
 const CoursesPage = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState([]);
+  const [students, setStudents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
@@ -21,6 +29,11 @@ const CoursesPage = () => {
   const [editingCourse, setEditingCourse] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [courseToDelete, setCourseToDelete] = useState(null);
+  const [submitting, setSubmitting] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [showAssignModal, setShowAssignModal] = useState(false);
+  const [assigningStudent, setAssigningStudent] = useState(null);
+  const [selectedCourseForAssign, setSelectedCourseForAssign] = useState('');
 
   const [formData, setFormData] = useState({
     name: '',
@@ -33,6 +46,7 @@ const CoursesPage = () => {
 
   useEffect(() => {
     fetchCourses();
+    fetchStudents();
   }, []);
 
   const fetchCourses = async () => {
@@ -46,8 +60,66 @@ const CoursesPage = () => {
     }
   };
 
+  const fetchStudents = async () => {
+    try {
+      const data = await apiService.getStudents();
+      setStudents(data);
+    } catch (err) {
+      console.error('Failed to load students:', err);
+    }
+  };
+
+  const getStudentCount = (courseId) => {
+    return students.filter(student => student.courses.includes(courseId)).length;
+  };
+
+  const getUnassignedStudents = () => {
+    return students.filter(student => !student.courses || student.courses.length === 0);
+  };
+
+  const handleAssignToCourse = (student) => {
+    setAssigningStudent(student);
+    setSelectedCourseForAssign('');
+    setShowAssignModal(true);
+  };
+
+  const handleAssignSubmit = async () => {
+    if (!selectedCourseForAssign || !assigningStudent) {
+      setError('Please select a course');
+      return;
+    }
+
+    setSubmitting(true);
+    setError('');
+
+    try {
+      const studentData = {
+        name: assigningStudent.name,
+        surname: assigningStudent.surname,
+        second_name: assigningStudent.second_name,
+        starting_date: assigningStudent.starting_date,
+        num_lesson: assigningStudent.num_lesson,
+        total_money: assigningStudent.total_money,
+        courses: [parseInt(selectedCourseForAssign)]
+      };
+
+      await apiService.updateStudent(assigningStudent.id, studentData);
+      setShowAssignModal(false);
+      setAssigningStudent(null);
+      setSelectedCourseForAssign('');
+      fetchStudents();
+    } catch (err) {
+      setError('Failed to assign student to course');
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitting(true);
+    setError('');
+
     try {
       // Convert string values to numbers for API
       const courseData = {
@@ -55,7 +127,7 @@ const CoursesPage = () => {
         lesson_per_month: parseInt(formData.lesson_per_month) || 0,
         cost: parseFloat(formData.cost) || 0
       };
-      
+
       if (editingCourse) {
         await apiService.updateCourse(editingCourse.id, courseData);
       } else {
@@ -72,6 +144,8 @@ const CoursesPage = () => {
       fetchCourses();
     } catch (err) {
       setError('Failed to save course');
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -86,6 +160,10 @@ const CoursesPage = () => {
     setShowModal(true);
   };
 
+  const handleViewDetails = (course) => {
+    navigate(`/courses/${course.id}`);
+  };
+
   const handleDelete = (course) => {
     setCourseToDelete(course);
     setShowDeleteModal(true);
@@ -93,6 +171,7 @@ const CoursesPage = () => {
 
   const confirmDelete = async () => {
     if (courseToDelete) {
+      setDeleting(true);
       try {
         await apiService.deleteCourse(courseToDelete.id);
         fetchCourses();
@@ -100,6 +179,8 @@ const CoursesPage = () => {
         setCourseToDelete(null);
       } catch (err) {
         setError('Failed to delete course');
+      } finally {
+        setDeleting(false);
       }
     }
   };
@@ -178,6 +259,58 @@ const CoursesPage = () => {
         </div>
       </div>
 
+      {/* Unassigned Students Card */}
+      {getUnassignedStudents().length > 0 && (
+        <div className="mb-6 bg-orange-50 border-2 border-orange-200 rounded-lg p-6">
+          <div className="flex items-start justify-between mb-4">
+            <div className="flex items-center">
+              <div className="flex-shrink-0">
+                <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                  <AlertCircle className="h-6 w-6 text-orange-600" />
+                </div>
+              </div>
+              <div className="ml-4">
+                <h3 className="text-lg font-semibold text-orange-900">
+                  Unassigned Students
+                </h3>
+                <p className="text-sm text-orange-700">
+                  {getUnassignedStudents().length} student{getUnassignedStudents().length !== 1 ? 's' : ''} not assigned to any course
+                </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            {getUnassignedStudents().map((student) => (
+              <div key={student.id} className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center flex-1 min-w-0">
+                    <div className="flex-shrink-0">
+                      <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                        <User className="h-5 w-5 text-orange-600" />
+                      </div>
+                    </div>
+                    <div className="ml-3 min-w-0 flex-1">
+                      <h4 className="text-sm font-medium text-gray-900 truncate">
+                        {student.name} {student.surname}
+                      </h4>
+                      <p className="text-xs text-gray-500 truncate">{student.second_name}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => handleAssignToCourse(student)}
+                    className="ml-2 flex-shrink-0 p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors"
+                    title="Assign to Course"
+                  >
+                    <UserPlus className="h-5 w-5" />
+                  </button>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Courses List */}
       <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {filteredCourses.map((course) => (
@@ -196,14 +329,23 @@ const CoursesPage = () => {
               </div>
               <div className="flex space-x-2">
                 <button
+                  onClick={() => handleViewDetails(course)}
+                  className="text-blue-600 hover:text-blue-700"
+                  title="View Details"
+                >
+                  <Eye className="h-4 w-4" />
+                </button>
+                <button
                   onClick={() => handleEdit(course)}
                   className="text-primary-600 hover:text-primary-700"
+                  title="Edit Course"
                 >
                   <Edit className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(course)}
                   className="text-red-600 hover:text-red-700"
+                  title="Delete Course"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -211,6 +353,10 @@ const CoursesPage = () => {
             </div>
             
             <div className="mt-4 space-y-2">
+              <div className="flex items-center text-sm text-gray-500">
+                <Users className="h-4 w-4 mr-2 text-primary-600" />
+                <span className="font-semibold text-primary-700">{getStudentCount(course.id)} students</span>
+              </div>
               <div className="flex items-center text-sm text-gray-500">
                 <Clock className="h-4 w-4 mr-2" />
                 {course.lesson_per_month} lessons per month
@@ -325,13 +471,25 @@ const CoursesPage = () => {
                 <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                   <button
                     type="submit"
-                    className="btn-primary w-full sm:w-auto sm:ml-3"
+                    disabled={submitting}
+                    className="btn-primary w-full sm:w-auto sm:ml-3 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {editingCourse ? 'Update' : 'Create'}
+                    {submitting ? (
+                      <span className="flex items-center justify-center">
+                        <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        {editingCourse ? 'Updating...' : 'Creating...'}
+                      </span>
+                    ) : (
+                      editingCourse ? 'Update' : 'Create'
+                    )}
                   </button>
                   <button
                     type="button"
-                    className="btn-secondary w-full sm:w-auto mt-3 sm:mt-0"
+                    disabled={submitting}
+                    className="btn-secondary w-full sm:w-auto mt-3 sm:mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
                     onClick={() => {
                       resetFormData();
                       setShowModal(false);
@@ -374,14 +532,26 @@ const CoursesPage = () => {
               <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
                 <button
                   type="button"
-                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm"
+                  disabled={deleting}
+                  className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={confirmDelete}
                 >
-                  Delete
+                  {deleting ? (
+                    <span className="flex items-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Deleting...
+                    </span>
+                  ) : (
+                    'Delete'
+                  )}
                 </button>
                 <button
                   type="button"
-                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  disabled={deleting}
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={cancelDelete}
                 >
                   Cancel
