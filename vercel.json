@@ -3,13 +3,10 @@
     {
       "source": "/api/:path*",
       "destination": "https://avernalc-production.up.railway.app/api/:path*"
-    }
-  ],
-  "routes": [
+    },
     {
-      "src": "/[^.]+",
-      "dest": "/",
-      "status": 200
+      "source": "/:path*",
+      "destination": "/index.html"
     }
   ]
 }
