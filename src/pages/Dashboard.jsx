@@ -85,18 +85,15 @@ const Dashboard = () => {
   // Get teacher's courses that have today in their week_days
   // Note: API already returns only courses assigned to the teacher
   const getTeacherCourses = () => {
-    console.log('=== DEBUG: getTeacherCourses called ===');
-    console.log('User:', user);
-    console.log('Courses (already filtered by API):', courses);
-    console.log('Courses length:', courses.length);
+   
     
     if (!courses.length) {
-      console.log('Early return: no courses');
+     
       return [];
     }
     
     const todayDayName = getTodayDayName();
-    console.log('Today is:', todayDayName);
+    
     
     const teacherCourses = courses.filter(course => {
       const isTodayScheduled = isTodayInCourseWeekDays(course);
@@ -111,8 +108,7 @@ const Dashboard = () => {
       return isTodayScheduled;
     });
     
-    console.log('Filtered courses for today:', teacherCourses.length);
-    console.log('=== END DEBUG ===');
+    
     return teacherCourses;
   };
 
@@ -123,27 +119,25 @@ const Dashboard = () => {
 
   // Get teacher statistics
   const getTeacherStats = () => {
-    if (!user?.course_ids || !courses.length) {
-      return {
-        totalCourses: 0,
-        totalStudents: 0,
-        coursesToday: 0
-      };
-    }
+   
 
-    const teacherCourses = getTeacherCourses();
-    
+    const teacherCoursesToday = getTeacherCourses();
+
     // Calculate total students enrolled in teacher's courses
-    const totalStudents = students.filter(student => {
-      return student.courses && student.courses.some(courseId => 
-        user.course_ids.includes(courseId)
+    const filteredStudents = students.filter(student => {
+      const hasMatchingCourse = student.courses && student.courses.some(courseId =>
+        courses.some(course => course.id === courseId)
       );
-    }).length;
+      
+      return hasMatchingCourse;
+    });
+
+   
 
     return {
-      totalCourses: teacherCourses.length,
-      totalStudents: totalStudents,
-      coursesToday: teacherCourses.length // All courses are available today if they show up
+      totalCourses: courses.length, // All courses assigned to this teacher
+      totalStudents: filteredStudents.length,
+      coursesToday: teacherCoursesToday.length // Only courses scheduled for today
     };
   };
 

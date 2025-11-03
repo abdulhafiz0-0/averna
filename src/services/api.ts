@@ -49,6 +49,7 @@ export interface LoginResponse {
   user_id: number;
   username: string;
   role: string;
+  course_ids?: number[];
 }
 
 export interface StatsOverview {

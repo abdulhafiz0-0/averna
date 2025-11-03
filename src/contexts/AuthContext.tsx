@@ -5,6 +5,7 @@ interface User {
   user_id: number;
   username: string;
   role: string;
+  course_ids?: number[];
 }
 
 interface AuthContextType {
@@ -76,9 +77,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
       const userData = {
         user_id: response.user_id,
         username: response.username,
-        role: response.role
+        role: response.role,
+        course_ids: response.course_ids
       };
-      
+
       setUser(userData);
       localStorage.setItem('user_data', JSON.stringify(userData));
       setIsAuthenticated(true);
