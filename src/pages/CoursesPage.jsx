@@ -15,7 +15,9 @@ import {
   Eye,
   UserPlus,
   AlertCircle,
-  User
+  User,
+  ChevronDown,
+  ChevronUp
 } from 'lucide-react';
 
 const CoursesPage = () => {
@@ -34,6 +36,7 @@ const CoursesPage = () => {
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [assigningStudent, setAssigningStudent] = useState(null);
   const [selectedCourseForAssign, setSelectedCourseForAssign] = useState('');
+  const [showUnassignedStudents, setShowUnassignedStudents] = useState(true);
 
   const [formData, setFormData] = useState({
     name: '',
@@ -263,7 +266,7 @@ const CoursesPage = () => {
       {getUnassignedStudents().length > 0 && (
         <div className="mb-6 bg-orange-50 border-2 border-orange-200 rounded-lg p-6">
           <div className="flex items-start justify-between mb-4">
-            <div className="flex items-center">
+            <div className="flex items-center flex-1">
               <div className="flex-shrink-0">
                 <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
                   <AlertCircle className="h-6 w-6 text-orange-600" />
@@ -278,9 +281,21 @@ const CoursesPage = () => {
                 </p>
               </div>
             </div>
+            <button
+              onClick={() => setShowUnassignedStudents(!showUnassignedStudents)}
+              className="ml-4 p-2 text-orange-600 hover:bg-orange-100 rounded-lg transition-colors"
+              title={showUnassignedStudents ? "Collapse" : "Expand"}
+            >
+              {showUnassignedStudents ? (
+                <ChevronUp className="h-5 w-5" />
+              ) : (
+                <ChevronDown className="h-5 w-5" />
+              )}
+            </button>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {showUnassignedStudents && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {getUnassignedStudents().map((student) => (
               <div key={student.id} className="bg-white border border-orange-200 rounded-lg p-4 shadow-sm">
                 <div className="flex items-center justify-between">
@@ -307,7 +322,8 @@ const CoursesPage = () => {
                 </div>
               </div>
             ))}
-          </div>
+            </div>
+          )}
         </div>
       )}
 
@@ -553,6 +569,137 @@ const CoursesPage = () => {
                   disabled={deleting}
                   className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm disabled:opacity-50 disabled:cursor-not-allowed"
                   onClick={cancelDelete}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Assign to Course Modal */}
+      {showAssignModal && assigningStudent && (
+        <div className="fixed inset-0 z-50 overflow-y-auto">
+          <div className="flex items-center justify-center min-h-screen pt-4 px-4 pb-20 text-center sm:block sm:p-0">
+            <div className="fixed inset-0 bg-transparent bg-opacity-75 transition-opacity backdrop-blur-sm" onClick={() => {
+              setShowAssignModal(false);
+              setAssigningStudent(null);
+              setSelectedCourseForAssign('');
+            }} />
+
+            <div className="inline-block align-bottom bg-white rounded-lg text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full relative z-10">
+              <div className="bg-white px-4 pt-5 pb-4 sm:p-6 sm:pb-4">
+                <div className="flex items-center mb-4">
+                  <div className="flex-shrink-0">
+                    <div className="h-12 w-12 rounded-full bg-orange-100 flex items-center justify-center">
+                      <UserPlus className="h-6 w-6 text-orange-600" />
+                    </div>
+                  </div>
+                  <div className="ml-4">
+                    <h3 className="text-xl font-medium text-gray-900">
+                      Assign {assigningStudent.name} {assigningStudent.surname} to Course
+                    </h3>
+                    <p className="text-sm text-gray-500 mt-1">
+                      Select a course to enroll this student
+                    </p>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg">
+                    <p className="text-sm text-red-600">{error}</p>
+                  </div>
+                )}
+
+                <div className="mt-4">
+                  {courses.length === 0 ? (
+                    <div className="text-center py-8">
+                      <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <p className="text-gray-500">No courses available.</p>
+                    </div>
+                  ) : (
+                    <div className="border border-gray-200 rounded-lg max-h-96 overflow-y-auto">
+                      {courses.map((course) => (
+                        <label
+                          key={course.id}
+                          className={`flex items-center p-4 hover:bg-gray-50 cursor-pointer border-b border-gray-100 last:border-b-0 transition-colors ${
+                            selectedCourseForAssign === course.id.toString() ? 'bg-primary-50 border-primary-200' : ''
+                          }`}
+                        >
+                          <input
+                            type="radio"
+                            name="course"
+                            className="h-4 w-4 text-primary-600 focus:ring-primary-500 border-gray-300"
+                            checked={selectedCourseForAssign === course.id.toString()}
+                            onChange={() => setSelectedCourseForAssign(course.id.toString())}
+                          />
+                          <div className="ml-4 flex-1">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <div className="flex-shrink-0">
+                                  <div className="h-10 w-10 rounded-full bg-primary-100 flex items-center justify-center">
+                                    <BookOpen className="h-5 w-5 text-primary-600" />
+                                  </div>
+                                </div>
+                                <div className="ml-3">
+                                  <p className="text-sm font-medium text-gray-900">
+                                    {course.name}
+                                  </p>
+                                  <p className="text-xs text-gray-500">{formatMoneyWithSom(course.cost)} per month</p>
+                                </div>
+                              </div>
+                            </div>
+                            <div className="mt-2 flex items-center space-x-4 text-xs text-gray-500">
+                              <span className="flex items-center">
+                                <Clock className="h-3 w-3 mr-1" />
+                                {course.lesson_per_month} lessons/month
+                              </span>
+                              <span className="flex items-center">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                {course.week_days.join(', ')}
+                              </span>
+                              <span className="flex items-center">
+                                <Users className="h-3 w-3 mr-1" />
+                                {getStudentCount(course.id)} students
+                              </span>
+                            </div>
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="bg-gray-50 px-4 py-3 sm:px-6 sm:flex sm:flex-row-reverse">
+                <button
+                  type="button"
+                  disabled={submitting || !selectedCourseForAssign}
+                  onClick={handleAssignSubmit}
+                  className="btn-primary w-full sm:w-auto sm:ml-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {submitting ? (
+                    <span className="flex items-center justify-center">
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Assigning...
+                    </span>
+                  ) : (
+                    'Assign to Course'
+                  )}
+                </button>
+                <button
+                  type="button"
+                  disabled={submitting}
+                  onClick={() => {
+                    setShowAssignModal(false);
+                    setAssigningStudent(null);
+                    setSelectedCourseForAssign('');
+                  }}
+                  className="btn-secondary w-full sm:w-auto mt-3 sm:mt-0 disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Cancel
                 </button>
